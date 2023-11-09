@@ -18,7 +18,7 @@ Pacman agents (in searchAgents.py).
 """
 
 import util
-
+import searchAgents
 class SearchProblem:
     """
     This class outlines the structure of a search problem, but doesn't implement
@@ -88,7 +88,7 @@ def depthFirstSearch(problem: SearchProblem):
         return []
     searchStack = util.Stack()
     searchStack.push(start)
-    while searchStack.isEmpty != True:
+    while searchStack.isEmpty() != True:
         exploringState = searchStack.pop() 
         node = exploringState[0]
         path = exploringState[1]
@@ -113,7 +113,7 @@ def breadthFirstSearch(problem: SearchProblem):
         return []
     searchQueue = util.Queue()
     searchQueue.push(start)
-    while searchQueue.isEmpty != True:
+    while searchQueue.isEmpty() != True:
         exploringState = searchQueue.pop() 
         node = exploringState[0]
         path = exploringState[1]
@@ -129,6 +129,23 @@ def breadthFirstSearch(problem: SearchProblem):
 def uniformCostSearch(problem: SearchProblem):
     """Search the node of least total cost first."""
     "*** YOUR CODE HERE ***"
+    visited = []
+    start = (problem.getStartState(), [])
+    if problem.isGoalState(start[0]):
+        return []
+    searchQueue = util.PriorityQueue()
+    searchQueue.push(start,0)
+    while searchQueue.isEmpty() != True:
+        exploringState = searchQueue.pop() 
+        node = exploringState[0]
+        path = exploringState[1]
+        if problem.isGoalState(node):
+            return path
+        if node not in visited:
+            visited.append(node)
+            for state in problem.getSuccessors(node):
+                searchQueue.update((state[0], path + [state[1]]), problem.getCostOfActions(path + [state[1]]))
+    return []
     util.raiseNotDefined()
 
 def nullHeuristic(state, problem=None):
@@ -141,6 +158,24 @@ def nullHeuristic(state, problem=None):
 def aStarSearch(problem: SearchProblem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
     "*** YOUR CODE HERE ***"
+    visited = []
+    start_state = problem.getStartState()
+    start = (start_state, [])
+    if problem.isGoalState(start[0]):
+        return []
+    searchQueue = util.PriorityQueue()
+    searchQueue.push(start,0 + heuristic(start_state , problem))
+    while searchQueue.isEmpty() != True:
+        exploringState = searchQueue.pop() 
+        node = exploringState[0]
+        path = exploringState[1]
+        if problem.isGoalState(node):
+            return path
+        if node not in visited:
+            visited.append(node)
+            for state in problem.getSuccessors(node):
+                searchQueue.push((state[0], path + [state[1]]), problem.getCostOfActions(path + [state[1]]) + heuristic(state[0],problem))
+    return []
     util.raiseNotDefined()
 
 
