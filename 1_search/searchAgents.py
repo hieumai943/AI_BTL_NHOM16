@@ -483,8 +483,22 @@ def foodHeuristic(state: Tuple[Tuple, List[List]], problem: FoodSearchProblem):
     problem.heuristicInfo['wallCount']
     """
     position, foodGrid = state
-    "*** YOUR CODE HERE ***"
-    return 0
+    path = 0
+    unvisited = foodGrid.asList()
+    if len(unvisited) == 0:
+        return 0
+    while len(unvisited) > 0:
+        min_path = 10000
+        nearest_food = ()
+        for food in unvisited:
+            distance =  abs(position[0] - food[0])  + abs(position[1] - food[1])
+            if min_path > distance:
+                min_path = distance
+                nearest_food = food
+        path += min_path
+        pacman_pos = nearest_food
+        unvisited.remove(nearest_food)
+    return path
 
 class ClosestDotSearchAgent(SearchAgent):
     "Search for all food using a sequence of searches"
@@ -513,8 +527,17 @@ class ClosestDotSearchAgent(SearchAgent):
         food = gameState.getFood()
         walls = gameState.getWalls()
         problem = AnyFoodSearchProblem(gameState)
-
-        "*** YOUR CODE HERE ***"
+        foodList = food.asList()
+        
+        min_path = 1000
+        nearest_dot = ()
+        for dot in foodList:
+            path = mazeDistance(startPosition, dot, gameState)
+            if min_path > path:
+                min_path = path
+                nearest_dot = dot
+        prob = PositionSearchProblem(gameState, start=startPosition, goal=nearest_dot, warn=False, visualize=False)
+        return search.bfs(prob)
         util.raiseNotDefined()
 
 class AnyFoodSearchProblem(PositionSearchProblem):
