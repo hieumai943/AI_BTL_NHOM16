@@ -27,7 +27,8 @@ class PerceptronModel(object):
         Returns: a node containing a single number (the score)
         """
         "*** YOUR CODE HERE ***"
-
+        return nn.DotProduct(self.w, x)
+    
     def get_prediction(self, x):
         """
         Calculates the predicted class for a single data point `x`.
@@ -35,12 +36,23 @@ class PerceptronModel(object):
         Returns: 1 or -1
         """
         "*** YOUR CODE HERE ***"
-
+        return 1 if nn.as_scalar(self.run(x)) >= 0 else -1
+    
     def train(self, dataset):
         """
         Train the perceptron until convergence.
         """
         "*** YOUR CODE HERE ***"
+        batch_size = 1
+        flag = True
+        while flag: # chạy đến khi nào không còn sample nào dự đoán sai
+            cnt = 0
+            for x, y in dataset.iterate_once(batch_size):
+                if self.get_prediction(x) != nn.as_scalar(y): #chỉ sửa tham số khi gặp điểm phân lớp sai
+                    nn.Parameter.update(self.w, x, nn.as_scalar(y))
+                    cnt += 1
+            if cnt == 0:
+                flag = False
 
 class RegressionModel(object):
     """
@@ -51,6 +63,14 @@ class RegressionModel(object):
     def __init__(self):
         # Initialize your model parameters here
         "*** YOUR CODE HERE ***"
+        self.learning_rate = 0.05
+        self.batch_size = 200
+        self.hidden_layer_size = 512
+        # 1 layer 512 units
+        self.w0 = nn.Parameter(1, self.hidden_layer_size)
+        self.b0 = nn.Parameter(1, self.hidden_layer_size)
+        self.w1 = nn.Parameter(self.hidden_layer_size, 1)
+        self.b1 = nn.Parameter(1, 1)
 
     def run(self, x):
         """
@@ -62,7 +82,10 @@ class RegressionModel(object):
             A node with shape (batch_size x 1) containing predicted y-values
         """
         "*** YOUR CODE HERE ***"
-
+        output_layer_1 = nn.ReLU(nn.AddBias(nn.Linear(x, self.w0), self.b0))
+        y_preds = nn.AddBias(nn.Linear(output_layer_1, self.w1), self.b1)
+        return y_preds
+    
     def get_loss(self, x, y):
         """
         Computes the loss for a batch of examples.
@@ -74,7 +97,7 @@ class RegressionModel(object):
         Returns: a loss node
         """
         "*** YOUR CODE HERE ***"
-
+        return nn.SquareLoss(self.run(x),y)
     def train(self, dataset):
         """
         Trains the model.
