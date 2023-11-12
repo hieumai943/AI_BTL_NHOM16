@@ -122,6 +122,12 @@ class DigitClassificationModel(object):
         # Initialize your model parameters here
         "*** YOUR CODE HERE ***"
 
+        self.batch_size = 2
+        self.wf = nn.Parameter(784, 60)
+        self.bf = nn.Parameter(1, 60)
+        self.wr = nn.Parameter(60, 10)
+        self.br = nn.Parameter(1, 10)
+
     def run(self, x):
         """
         Runs the model for a batch of examples.
