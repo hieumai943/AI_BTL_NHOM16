@@ -292,31 +292,8 @@ def SLAMSuccessorAxiomSingle(x: int, y: int, time: int, walls_grid: List[List[bo
 
 
 def pacphysicsAxioms(t: int, all_coords: List[Tuple], non_outer_wall_coords: List[Tuple], walls_grid: List[List] = None, sensorModel: Callable = None, successorAxioms: Callable = None) -> Expr:
-    """
-    Given:
-        t: timestep
-        all_coords: list of (x, y) coordinates of the entire problem
-        non_outer_wall_coords: list of (x, y) coordinates of the entire problem,
-            excluding the outer border (these are the actual squares pacman can
-            possibly be in)
-        walls_grid: 2D array of either -1/0/1 or T/F. Used only for successorAxioms.
-            Do NOT use this when making possible locations for pacman to be in.
-        sensorModel(t, non_outer_wall_coords) -> Expr: function that generates
-            the sensor model axioms. If None, it's not provided, so shouldn't be run.
-        successorAxioms(t, walls_grid, non_outer_wall_coords) -> Expr: function that generates
-            the sensor model axioms. If None, it's not provided, so shouldn't be run.
-    Return a logic sentence containing all of the following:
-        - for all (x, y) in all_coords:
-            If a wall is at (x, y) --> Pacman is not at (x, y)
-        - Pacman is at exactly one of the squares at timestep t.
-        - Pacman takes exactly one action at timestep t.
-        - Results of calling sensorModel(...), unless None.
-        - Results of calling successorAxioms(...), describing how Pacman can end in various
-            locations on this time step. Consider edge cases. Don't call if None.
-    """
+    
     pacphysics_sentences = []
-
-    "*** BEGIN YOUR CODE HERE ***"
     for pos_x, pos_y in all_coords:
         exp1 = PropSymbolExpr(wall_str, pos_x, pos_y)
         exp2 = PropSymbolExpr(pacman_str, pos_x, pos_y, time = t)
@@ -337,21 +314,9 @@ def pacphysicsAxioms(t: int, all_coords: List[Tuple], non_outer_wall_coords: Lis
         pacphysics_sentences.append(successorAxioms(t, walls_grid, non_outer_wall_coords))
     
     return logic.conjoin(pacphysics_sentences)
-    "*** END YOUR CODE HERE ***"
-
-
 
 def checkLocationSatisfiability(x1_y1: Tuple[int, int], x0_y0: Tuple[int, int], action0, action1, problem):
-    """
-    Given:
-        - x1_y1 = (x1, y1), a potential location at time t = 1
-        - x0_y0 = (x0, y0), Pacman's location at time t = 0
-        - action0 = one of the four items in DIRECTIONS, Pacman's action at time t = 0
-        - problem = An instance of logicAgents.LocMapProblem
-    Return:
-        - a model proving whether Pacman is at (x1, y1) at time t = 1
-        - a model proving whether Pacman is not at (x1, y1) at time t = 1
-    """
+    
     walls_grid = problem.walls
     walls_list = walls_grid.asList()
     all_coords = list(itertools.product(range(problem.getWidth()+2), range(problem.getHeight()+2)))
