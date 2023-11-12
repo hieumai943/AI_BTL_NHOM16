@@ -244,7 +244,7 @@ def pacmanSuccessorAxiomSingle(x: int, y: int, time: int, walls_grid: List[List[
                             & PropSymbolExpr('East', time=last))
     if not possible_causes:
         return None
-    
+    return PropSymbolExpr(pacman_str, x, y, time=now) % disjoin(possible_causes)
     "*** BEGIN YOUR CODE HERE ***"
     util.raiseNotDefined()
     "*** END YOUR CODE HERE ***"
@@ -317,10 +317,28 @@ def pacphysicsAxioms(t: int, all_coords: List[Tuple], non_outer_wall_coords: Lis
     pacphysics_sentences = []
 
     "*** BEGIN YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    for pos_x, pos_y in all_coords:
+        exp1 = PropSymbolExpr(wall_str, pos_x, pos_y)
+        exp2 = PropSymbolExpr(pacman_str, pos_x, pos_y, time = t)
+        pacphysics_sentences.append(exp1 >> (~exp2))
+        
+    pos_list = []
+    for pos_x, pos_y in non_outer_wall_coords:
+        pos_list.append(PropSymbolExpr(pacman_str, pos_x, pos_y, time = t))
+    pacphysics_sentences.append(exactlyOne(pos_list))
+    
+    action_list = []
+    for direction in DIRECTIONS:
+        action_list.append(PropSymbolExpr(direction, time = t))
+    pacphysics_sentences.append(exactlyOne(action_list))
+    
+    if callable(sensorModel): pacphysics_sentences.append(sensorModel(t, non_outer_wall_coords))
+    if (successorAxioms and walls_grid and t):
+        pacphysics_sentences.append(successorAxioms(t, walls_grid, non_outer_wall_coords))
+    
+    return logic.conjoin(pacphysics_sentences)
     "*** END YOUR CODE HERE ***"
 
-    return conjoin(pacphysics_sentences)
 
 
 def checkLocationSatisfiability(x1_y1: Tuple[int, int], x0_y0: Tuple[int, int], action0, action1, problem):
@@ -329,14 +347,10 @@ def checkLocationSatisfiability(x1_y1: Tuple[int, int], x0_y0: Tuple[int, int], 
         - x1_y1 = (x1, y1), a potential location at time t = 1
         - x0_y0 = (x0, y0), Pacman's location at time t = 0
         - action0 = one of the four items in DIRECTIONS, Pacman's action at time t = 0
-        - action1 = to ensure match with autograder solution
-        - problem = an instance of logicAgents.LocMapProblem
-    Note:
-        - there's no sensorModel because we know everything about the world
-        - the successorAxioms should be allLegalSuccessorAxioms where needed
+        - problem = An instance of logicAgents.LocMapProblem
     Return:
-        - a model where Pacman is at (x1, y1) at time t = 1
-        - a model where Pacman is not at (x1, y1) at time t = 1
+        - a model proving whether Pacman is at (x1, y1) at time t = 1
+        - a model proving whether Pacman is not at (x1, y1) at time t = 1
     """
     walls_grid = problem.walls
     walls_list = walls_grid.asList()
@@ -348,11 +362,16 @@ def checkLocationSatisfiability(x1_y1: Tuple[int, int], x0_y0: Tuple[int, int], 
 
     # We know which coords are walls:
     map_sent = [PropSymbolExpr(wall_str, x, y) for x, y in walls_list]
-    KB.append(conjoin(map_sent))
+    KB.append(logic.conjoin(map_sent))
 
-    "*** BEGIN YOUR CODE HERE ***"
-    util.raiseNotDefined()
-    "*** END YOUR CODE HERE ***"
+    for i in range(2):
+        KB.append(pacphysicsAxioms(i, all_coords, non_outer_wall_coords, walls_grid, None, allLegalSuccessorAxioms))
+    KB.append(PropSymbolExpr(pacman_str, x0, y0, time = 0))
+    KB.append(PropSymbolExpr(action0, time = 0))
+    KB.append(PropSymbolExpr(action1, time = 1))
+    at_x1_y1 = findModel(logic.conjoin(KB) & logic.PropSymbolExpr(pacman_str, x1, y1, time = 1))
+    not_at_x1_y1 = findModel(logic.conjoin(KB) & (~logic.PropSymbolExpr(pacman_str, x1, y1, time = 1)))
+    return (at_x1_y1, not_at_x1_y1 )
 
 #______________________________________________________________________________
 # QUESTION 4
