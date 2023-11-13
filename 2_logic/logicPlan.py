@@ -527,9 +527,11 @@ def mapping(problem, agent) -> Generator:
     for t in range(agent.num_timesteps):
         KB.append(pacphysicsAxioms(t, all_coords, non_outer_wall_coords, known_map, sensorAxioms, allLegalSuccessorAxioms))
         KB.append(PropSymbolExpr(agent.actions[t], time = t))
+        
         percepts = agent.getPercepts()
         percepts_rule = fourBitPerceptRules(t, percepts)
         KB.append(percepts_rule)
+        
         for pos in non_outer_wall_coords:
             proved_wall = findModel(conjoin(KB) & PropSymbolExpr(wall_str, pos[0], pos[1]))
             proved_not_wall = findModel(conjoin(KB) & ~PropSymbolExpr(wall_str, pos[0], pos[1]))
@@ -570,9 +572,40 @@ def slam(problem, agent) -> Generator:
     KB.append(conjoin(outer_wall_sent))
 
     "*** BEGIN YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    KB.append(PropSymbolExpr(pacman_str, pac_x_0, pac_y_0, time = 0))
+    KB.append(~PropSymbolExpr(wall_str, pac_x_0, pac_y_0))
+    known_map[pac_x_0][pac_y_0] = 0
 
     for t in range(agent.num_timesteps):
+        KB.append(pacphysicsAxioms(t, all_coords, non_outer_wall_coords, known_map, SLAMSensorAxioms, SLAMSuccessorAxioms))
+        KB.append(PropSymbolExpr(agent.actions[t], time = t))
+        
+        percepts = agent.getPercepts()
+        percepts_rule = numAdjWallsPerceptRules(t, percepts)
+        KB.append(percepts_rule)
+        
+        for pos in non_outer_wall_coords:
+            proved_wall = findModel(conjoin(KB) & PropSymbolExpr(wall_str, pos[0], pos[1]))
+            proved_not_wall = findModel(conjoin(KB) & ~PropSymbolExpr(wall_str, pos[0], pos[1]))
+            if proved_wall == False:
+                KB.append(~PropSymbolExpr(wall_str, pos[0], pos[1]))
+                known_map[pos[0]][pos[1]] = 0
+            if proved_not_wall == False:
+                KB.append(PropSymbolExpr(wall_str, pos[0], pos[1]))
+                known_map[pos[0]][pos[1]] = 1
+
+        possible_locations = []
+        for pos in non_outer_wall_coords:
+            proved_not_in = findModel(conjoin(KB) & ~PropSymbolExpr(pacman_str, pos[0], pos[1], time = t))
+            proved_in = findModel(conjoin(KB) & PropSymbolExpr(pacman_str, pos[0], pos[1], time = t))
+            if proved_not_in == False:
+                KB.append(PropSymbolExpr(pacman_str, pos[0], pos[1], time = t))
+            elif proved_in == False:
+                KB.append(~PropSymbolExpr(pacman_str, pos[0], pos[1], time = t))
+            if proved_in:
+                possible_locations.append((pos[0], pos[1]))
+                
+        agent.moveToNextState(agent.actions[t])
         "*** END YOUR CODE HERE ***"
         yield (known_map, possible_locations)
 
