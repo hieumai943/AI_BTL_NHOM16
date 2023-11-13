@@ -36,8 +36,10 @@ class PerceptronModel(object):
         Returns: 1 or -1
         """
         "*** YOUR CODE HERE ***"
-        return 1 if nn.as_scalar(self.run(x)) >= 0 else -1
-    
+        if nn.as_scalar(self.run(x)) >= 0:
+            return 1
+        else:
+            return -1
     def train(self, dataset):
         """
         Train the perceptron until convergence.
