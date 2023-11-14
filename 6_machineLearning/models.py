@@ -105,7 +105,16 @@ class RegressionModel(object):
         Trains the model.
         """
         "*** YOUR CODE HERE ***"
-
+        for x,y in dataset.iterate_forever(self.batch_size):
+            loss = self.get_loss(x,y)
+            if nn.as_scalar(loss) < 0.02:
+                break
+            grad_w0, grad_b0 , grad_w1, grad_b1= nn.gradients(loss, [self.w0, self.b0, self.w1, self.b1])
+            self.w0.update(grad_w0, -self.learning_rate)
+            self.b0.update(grad_b0, -self.learning_rate)
+            self.w1.update(grad_w1, -self.learning_rate)
+            self.b1.update(grad_b1, -self.learning_rate)
+            
 class DigitClassificationModel(object):
     """
     A model for handwritten digit classification using the MNIST dataset.
