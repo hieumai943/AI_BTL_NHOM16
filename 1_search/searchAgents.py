@@ -489,7 +489,7 @@ def foodHeuristic(state: Tuple[Tuple, List[List]], problem: FoodSearchProblem):
         distance = ((dot[0] - position[0])**2 + (dot[1] - position[1])**2) **0.5 
         distanceList.append(distance)
     if len(distanceList) > 0:
-        return min(distanceList)
+        return max(distanceList)
     return 0
 
 class ClosestDotSearchAgent(SearchAgent):
