@@ -294,5 +294,5 @@ class LanguageIDModel(object):
 
             self.w2.update(grad_w2, -self.learning_rate)
 
-            if dataset.get_validation_accuracy() > 0.85:
+            if dataset.get_validation_accuracy() > 0.9:
                 break
